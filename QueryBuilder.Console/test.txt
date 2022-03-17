@@ -1,0 +1,37 @@
+def tables
+    author{
+        [primary] id : int;
+        name : string;
+        age: int;
+        active : bool;
+    }
+    
+    book{
+        [primary] isbn: string;
+        name : string;
+        numberOfPages : int;
+        price: float;
+        active : bool;
+    }
+    end
+    def relationships
+        author.many(books);
+        books.one(author);
+    end
+    
+    
+    author.add({id: 1, name: 'Megaera Gittan', age: 26, active: true});
+    book.add({id: '156-845-44-455', name: 'The new book', numberOfPages: 100, price: 500, active: true});
+    book.add({id: '576-763-84-862', name: 'The new book 2', numberOfPages: 150, price: 600, active: true});
+    book.add({id: '222-338-48-693', name: 'Book to delete', numberOfPages: 0, price: 100, active: true});
+
+    
+    author.update({name: 'Megaera Gittan Reyes'});
+    book.update({name: 'A fantastic book'})
+          .where(active = true && id = '156-845-44-455');
+          
+    book.delete(active = true && name = 'Book to delete');
+    
+    author.as(a).join(book as b, a.id, b.isbn)
+           .where(a.active = true ||  b.active = true)
+           .select(a.name, b.name);

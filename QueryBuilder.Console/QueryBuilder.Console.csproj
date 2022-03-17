@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFrameworks>net6.0;netcoreapp3.1</TargetFrameworks>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\QueryBuilder.Infrastructure\QueryBuilder.Infrastructure.csproj" />
+      <ProjectReference Include="..\QueryBuilder.Lexer\QueryBuilder.Lexer.csproj" />
+      <ProjectReference Include="..\QueryBuilder.Parser\QueryBuilder.Parser.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="test.txt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+</Project>
