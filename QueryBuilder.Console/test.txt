@@ -29,8 +29,6 @@ def tables
     author.update({name: 'Megaera Gittan Reyes'});
     book.update({name: 'A fantastic book'})
           .where(active = true && id = '156-845-44-455');
-          
-    book.delete(active = true && name = 'Book to delete');
     
     author.as(a).join(book as b, a.id, b.isbn)
            .where(a.active = true ||  b.active = true)
