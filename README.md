@@ -1,7 +1,7 @@
 # tiny-orm
 A very small, simple and limited orm that will translate query language to SQL.
 
-*Grammar*
+**Grammar**
 
 code ->  'def' 'tables' table-def table-defs 'end' 'def' 'relationships' relationships 'end' queries
 	  
