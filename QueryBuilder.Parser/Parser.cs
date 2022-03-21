@@ -41,8 +41,6 @@ namespace QueryBuilder.Parser
         {
             if (_lookAhead == TokenType.Identifier)
             {
-                Match(TokenType.Identifier);
-                Match(TokenType.Dot);
                 Relationship();
                 Relationships();
             }
@@ -50,6 +48,8 @@ namespace QueryBuilder.Parser
 
         private void Relationship()
         {
+            Match(TokenType.Identifier);
+            Match(TokenType.Dot);
             if (_lookAhead == TokenType.ManyKeyword)
             {
                 Match(TokenType.ManyKeyword);
@@ -69,8 +69,6 @@ namespace QueryBuilder.Parser
         {
             if (_lookAhead == TokenType.Identifier)
             {
-                Match(TokenType.Identifier);
-                Match(TokenType.Dot);
                 Query();
                 Queries();
             }
@@ -78,6 +76,8 @@ namespace QueryBuilder.Parser
 
         private void Query()
         {
+            Match(TokenType.Identifier);
+            Match(TokenType.Dot);
             switch (_lookAhead.TokenType)
             {
                 case TokenType.AddKeyword:
@@ -90,77 +90,17 @@ namespace QueryBuilder.Parser
                     Match(TokenType.RightParens);
                     Update();
                     break;
-                case TokenType.DeleteKeyword:
-                    Delete();
-                    break;
-                case TokenType.WhereKeyword:
-                    Match(TokenType.WhereKeyword);
-                    Match(TokenType.LeftParens);
-                    LogicalOrExpr();
-                    Match(TokenType.RightParens);
-                    Filter();
-                    break;
-                case TokenType.AsKeyword:
-                    Match(TokenType.AsKeyword);
-                    Match(TokenType.LeftParens);
-                    Match(TokenType.Identifier);
-                    Match(TokenType.RightParens);
-                    Match(TokenType.Dot);
-                    Match(TokenType.JoinKeyword);
-                    Match(TokenType.LeftParens);
-                    Match(TokenType.Identifier);
-                    Match(TokenType.AsKeyword);
-                    Match(TokenType.Identifier);
-                    Match(TokenType.Comma);
-                    CompoundId();
-                    Match(TokenType.Comma);
-                    CompoundId();
-                    Match(TokenType.RightParens);
-                    Join();
-                    break;
                 default:
+                    Match(TokenType.SelectKeyword);
+                    Match(TokenType.LeftParens);
+                    Args();
+                    Match(TokenType.RightParens);
                     Select();
                     break;
             }
         }
 
         private void Select()
-        {
-            Match(TokenType.SelectKeyword);
-            Match(TokenType.LeftParens);
-            Args();
-            Match(TokenType.RightParens);
-            Match(TokenType.Semicolon);
-        }
-
-        private void Args()
-        {
-            Match(TokenType.Identifier);
-            OptionalCompoundId();
-            ArgsPrime();
-        }
-
-        private void ArgsPrime()
-        {
-            if (_lookAhead == TokenType.Comma)
-            {
-                Match(TokenType.Comma);
-                Match(TokenType.Identifier);
-                OptionalCompoundId();
-                ArgsPrime();
-            }
-        }
-
-        private void OptionalCompoundId()
-        {
-            if (_lookAhead == TokenType.Dot)
-            {
-                Match(TokenType.Dot);
-                Match(TokenType.Identifier);
-            }
-        }
-
-        private void Join()
         {
             if (_lookAhead == TokenType.Semicolon)
             {
@@ -173,59 +113,26 @@ namespace QueryBuilder.Parser
                 Match(TokenType.LeftParens);
                 LogicalOrExpr();
                 Match(TokenType.RightParens);
-                InnerJoin();
-            }
-        }
-
-        private void InnerJoin()
-        {
-            if (_lookAhead == TokenType.Semicolon)
-            {
-                Match(TokenType.Semicolon);
-            }
-            else
-            {
-                Match(TokenType.Dot);
-                Match(TokenType.SelectKeyword);
-                Match(TokenType.LeftParens);
-                Args();
-                Match(TokenType.RightParens);
                 Match(TokenType.Semicolon);
             }
         }
 
-        private void CompoundId()
+        private void Args()
         {
             Match(TokenType.Identifier);
-            Match(TokenType.Dot);
-            Match(TokenType.Identifier);
+            ArgsPrime();
         }
 
-        private void Filter()
+        private void ArgsPrime()
         {
-            if (_lookAhead == TokenType.Semicolon)
+            if (_lookAhead == TokenType.Comma)
             {
-                Match(TokenType.Semicolon);
-            }
-            else
-            {
-                Match(TokenType.Dot);
-                Match(TokenType.SelectKeyword);
-                Match(TokenType.LeftParens);
-                Args();
-                Match(TokenType.RightParens);
-                Match(TokenType.Semicolon);
+                Match(TokenType.Comma);
+                Match(TokenType.Identifier);
+                ArgsPrime();
             }
         }
 
-        private void Delete()
-        {
-            Match(TokenType.DeleteKeyword);
-            Match(TokenType.LeftParens);
-            LogicalOrExpr();
-            Match(TokenType.RightParens);
-            Match(TokenType.Semicolon);
-        }
 
         private void Update()
         {
@@ -262,16 +169,10 @@ namespace QueryBuilder.Parser
         private void JsonElements()
         {
             JsonElementBlock();
-            JsonElementsPrime();
-        }
-
-        private void JsonElementsPrime()
-        {
-            if (_lookAhead == TokenType.Comma)
+            while (_lookAhead == TokenType.Comma)
             {
                 Match(TokenType.Comma);
                 JsonElementBlock();
-                JsonElementsPrime();
             }
         }
 
@@ -310,30 +211,28 @@ namespace QueryBuilder.Parser
 
         private void TableColumns()
         {
-            if (_lookAhead == TokenType.LeftBracket || _lookAhead == TokenType.Identifier)
+            while (_lookAhead == TokenType.LeftBracket || _lookAhead == TokenType.Identifier)
             {
-                TableColumn();
-                TableColumns();
+                switch (_lookAhead)
+                {
+                    case { TokenType: TokenType.LeftBracket }:
+                        Match(TokenType.LeftBracket);
+                        Match(TokenType.PrimaryKeyword);
+                        Match(TokenType.RightBracket);
+                        Match(TokenType.Identifier);
+                        Match(TokenType.Colon);
+                        Type();
+                        Match(TokenType.Semicolon);
+                        break;
+                    default:
+                        Match(TokenType.Identifier);
+                        Match(TokenType.Colon);
+                        Type();
+                        Match(TokenType.Semicolon);
+                        break;
+                }
             }
         }
-
-        private void TableColumn()
-        {
-            switch (_lookAhead)
-            {
-                case {TokenType: TokenType.LeftBracket}:
-                    Match(TokenType.LeftBracket);
-                    TableMetadataColumn();
-                    break;
-                default:
-                    Match(TokenType.Identifier);
-                    Match(TokenType.Colon);
-                    Type();
-                    Match(TokenType.Semicolon);
-                    break;
-            }
-        }
-
         private void Type()
         {
             switch (_lookAhead)
@@ -351,16 +250,6 @@ namespace QueryBuilder.Parser
                     Match(TokenType.StringKeyword);
                     break;
             }
-        }
-
-        private void TableMetadataColumn()
-        {
-            Match(TokenType.PrimaryKeyword);
-            Match(TokenType.RightBracket);
-            Match(TokenType.Identifier);
-            Match(TokenType.Colon);
-            Type();
-            Match(TokenType.Semicolon);
         }
 
         private void LogicalOrExpr()
@@ -439,7 +328,6 @@ namespace QueryBuilder.Parser
                     break;
                 case TokenType.Identifier:
                     Match(TokenType.Identifier);
-                    OptionalCompoundId();
                     break;
                 case TokenType.IntConstant:
                     this.Match(TokenType.IntConstant);
